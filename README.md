@@ -1,36 +1,34 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# chacho-pdf
 
-## Getting Started
+Alternativa libre, gratuita y privada a iLovePDF. Procesa tus archivos en tu propio servidor sin depender de terceros.
 
-First, run the development server:
+## Herramientas disponibles
+
+- **Word a PDF** — Convierte documentos Word a PDF (servidor)
+- **Separar PDF** — Divide un PDF por página, rango o selección manual (navegador)
+- **Unir PDFs** — Combina varios PDFs en uno solo (navegador)
+- **PDF a Word** — Extrae el texto de un PDF a un documento Word (servidor)
+- **JPG a PDF** — Convierte imágenes a un PDF (navegador)
+- **PDF a JPG** — Extrae páginas de un PDF como imágenes JPG (navegador)
+
+## Desarrollo local
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deployment con Docker
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+docker-compose up --build
+```
 
-## Learn More
+La aplicación estará disponible en `http://localhost:3000`.
 
-To learn more about Next.js, take a look at the following resources:
+## Privacidad
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Las herramientas que corren en el **navegador** (unir, separar, jpg↔pdf) no suben archivos al servidor.
+- Las conversiones **Word↔PDF** se procesan en el servidor pero los archivos temporales se eliminan inmediatamente después.
