@@ -5,6 +5,7 @@ import { saveAs } from "file-saver";
 import Navbar from "@/components/Navbar";
 import FileDropzone from "@/components/FileDropzone";
 import { FileType, Download, Trash2 } from "lucide-react";
+import { isElectron, convertWordToPdfElectron } from "@/lib/electron";
 
 export default function WordToPdfPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -24,14 +25,19 @@ export default function WordToPdfPage() {
     if (!file) return;
     setLoading(true);
     try {
-      const form = new FormData();
-      form.append("file", file);
-      const res = await fetch("/api/convert/word-to-pdf", {
-        method: "POST",
-        body: form,
-      });
-      if (!res.ok) throw new Error("Error en la conversión");
-      const blob = await res.blob();
+      let blob: Blob;
+      if (isElectron()) {
+        blob = await convertWordToPdfElectron(file);
+      } else {
+        const form = new FormData();
+        form.append("file", file);
+        const res = await fetch("/api/convert/word-to-pdf", {
+          method: "POST",
+          body: form,
+        });
+        if (!res.ok) throw new Error("Error en la conversión");
+        blob = await res.blob();
+      }
       saveAs(blob, file.name.replace(/\.docx?$/i, ".pdf"));
     } finally {
       setLoading(false);
