@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { saveAs } from "file-saver";
 import Navbar from "@/components/Navbar";
+import BackButton from "@/components/BackButton";
 import FileDropzone from "@/components/FileDropzone";
 import { FileType, Download, Trash2 } from "lucide-react";
 import { isElectron, convertWordToPdfElectron } from "@/lib/electron";
@@ -39,6 +40,8 @@ export default function WordToPdfPage() {
         blob = await res.blob();
       }
       saveAs(blob, file.name.replace(/\.docx?$/i, ".pdf"));
+    } catch {
+      // error handled silently in UI
     } finally {
       setLoading(false);
     }
@@ -48,6 +51,9 @@ export default function WordToPdfPage() {
     <>
       <Navbar />
       <main className="mx-auto w-full max-w-3xl px-6 py-10">
+        <div className="mb-2">
+          <BackButton />
+        </div>
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
             <FileType className="h-5 w-5 text-white" />
