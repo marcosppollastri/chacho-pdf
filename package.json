@@ -1,6 +1,7 @@
 {
   "name": "chacho-pdf",
   "version": "0.2.0",
+  "author": "chacho-pdf <dev@chacho.pdf>",
   "private": true,
   "main": "electron/main.js",
   "scripts": {
@@ -11,7 +12,8 @@
     "test": "jest --coverage",
     "docker:run": "docker compose up --build",
     "electron:dev": "concurrently \"next dev\" \"wait-on http://localhost:3000 && electron --no-sandbox electron/main.js\"",
-    "electron:build": "next build && electron-builder"
+    "electron:build": "next build && electron-builder",
+    "electron:build:win": "next build && electron-builder --win"
   },
   "dependencies": {
     "file-saver": "^2.0.5",
@@ -60,7 +62,9 @@
       "node_modules/**/*"
     ],
     "asarUnpack": [
-      ".next/standalone/**/*"
+      ".next/**/*",
+      "public/**/*",
+      "node_modules/**/*"
     ],
     "win": {
       "target": "nsis"

@@ -1,10 +1,11 @@
-const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const { app, BrowserWindow } = require("electron");
 const path = require("path");
-const { spawn } = require("child_process");
+const http = require("http");
+const { parse } = require("url");
 const { handleConversions } = require("./ipc-handlers");
 
 let mainWindow;
-let nextServer;
+let httpServer;
 
 async function detectDevPort() {
   for (let port = 3000; port <= 3005; port++) {
@@ -16,7 +17,7 @@ async function detectDevPort() {
   return 3000;
 }
 
-function createWindow() {
+async function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -30,57 +31,38 @@ function createWindow() {
   const isDev = !app.isPackaged;
 
   if (isDev) {
-    // Auto-detect Next.js dev port (3000 may be in use)
-    detectDevPort().then((port) => {
-      mainWindow.loadURL(`http://localhost:${port}`);
-      mainWindow.webContents.openDevTools();
-    });
+    const port = await detectDevPort();
+    mainWindow.loadURL(`http://localhost:${port}`);
+    mainWindow.webContents.openDevTools();
   } else {
-    // In production, start Next.js server internally
-    startNextServer().then((port) => {
-      mainWindow.loadURL(`http://localhost:${port}`);
-    });
+    const port = await startNextServer();
+    mainWindow.loadURL(`http://localhost:${port}`);
   }
 }
 
-function startNextServer() {
-  return new Promise((resolve, reject) => {
-    const port = 3000;
-    const appPath = app.getAppPath();
-    const serverPath = path.join(appPath, ".next", "standalone", "server.js");
-    nextServer = spawn(process.execPath, [serverPath], {
-      env: { ...process.env, PORT: port, HOSTNAME: "127.0.0.1" },
-      cwd: appPath,
-    });
+async function startNextServer() {
+  const port = 3000;
+  const appPath = app.getAppPath().replace(/\.asar$/, ".asar.unpacked");
+  const next = require("next");
+  const nextApp = next({ dev: false, dir: appPath });
+  const handle = nextApp.getRequestHandler();
 
-    let ready = false;
-    nextServer.stdout.on("data", (data) => {
-      const str = data.toString();
-      console.log("[Next.js]", str);
-      if (!ready && str.includes("Ready")) {
-        ready = true;
-        resolve(port);
-      }
-    });
+  await nextApp.prepare();
 
-    nextServer.stderr.on("data", (data) => {
-      console.error("[Next.js]", data.toString());
-    });
-
-    nextServer.on("error", reject);
-
-    // Fallback timeout
-    setTimeout(() => {
-      if (!ready) {
-        ready = true;
-        resolve(port);
-      }
-    }, 5000);
+  httpServer = http.createServer((req, res) => {
+    handle(req, res, parse(req.url, true));
   });
+
+  const actualPort = await new Promise((resolve) => {
+    httpServer.listen(0, "127.0.0.1", () => {
+      resolve(httpServer.address().port);
+    });
+  });
+  return actualPort;
 }
 
-app.whenReady().then(() => {
-  createWindow();
+app.whenReady().then(async () => {
+  await createWindow();
   handleConversions();
 
   app.on("activate", () => {
@@ -89,10 +71,10 @@ app.whenReady().then(() => {
 });
 
 app.on("window-all-closed", () => {
-  if (nextServer) nextServer.kill();
+  if (httpServer) httpServer.close();
   if (process.platform !== "darwin") app.quit();
 });
 
 app.on("before-quit", () => {
-  if (nextServer) nextServer.kill();
+  if (httpServer) httpServer.close();
 });
