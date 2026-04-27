@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { PDFDocument } from "pdf-lib";
 import { saveAs } from "file-saver";
 import Navbar from "@/components/Navbar";
+import BackButton from "@/components/BackButton";
 import FileDropzone from "@/components/FileDropzone";
 import { ArrowUp, ArrowDown, Trash2, Download, Merge } from "lucide-react";
 
@@ -53,6 +54,9 @@ export default function MergePage() {
     <>
       <Navbar />
       <main className="mx-auto w-full max-w-3xl px-6 py-10">
+        <div className="mb-2">
+          <BackButton />
+        </div>
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-600">
             <Merge className="h-5 w-5 text-white" />

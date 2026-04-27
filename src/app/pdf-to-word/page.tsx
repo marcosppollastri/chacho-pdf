@@ -3,8 +3,10 @@
 import { useState, useCallback } from "react";
 import { saveAs } from "file-saver";
 import Navbar from "@/components/Navbar";
+import BackButton from "@/components/BackButton";
 import FileDropzone from "@/components/FileDropzone";
 import { FileText, Download, Trash2 } from "lucide-react";
+import { isElectron, convertPdfToWordElectron } from "@/lib/electron";
 
 export default function PdfToWordPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -19,15 +21,22 @@ export default function PdfToWordPage() {
     if (!file) return;
     setLoading(true);
     try {
-      const form = new FormData();
-      form.append("file", file);
-      const res = await fetch("/api/convert/pdf-to-word", {
-        method: "POST",
-        body: form,
-      });
-      if (!res.ok) throw new Error("Error en la conversión");
-      const blob = await res.blob();
+      let blob: Blob;
+      if (isElectron()) {
+        blob = await convertPdfToWordElectron(file);
+      } else {
+        const form = new FormData();
+        form.append("file", file);
+        const res = await fetch("/api/convert/pdf-to-word", {
+          method: "POST",
+          body: form,
+        });
+        if (!res.ok) throw new Error("Error en la conversión");
+        blob = await res.blob();
+      }
       saveAs(blob, file.name.replace(/\.pdf$/i, ".docx"));
+    } catch {
+      // error handled silently in UI
     } finally {
       setLoading(false);
     }
@@ -37,6 +46,9 @@ export default function PdfToWordPage() {
     <>
       <Navbar />
       <main className="mx-auto w-full max-w-3xl px-6 py-10">
+        <div className="mb-2">
+          <BackButton />
+        </div>
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600">
             <FileText className="h-5 w-5 text-white" />
